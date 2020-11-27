@@ -1,24 +1,23 @@
-import pandas
 import numpy as np
-from sklearn.tree import DecisionTreeClassifier
-#from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
+import sklearn.datasets
+import sklearn.model_selection
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.preprocessing import scale
 
-data = pandas.read_csv('titanic.csv', index_col='PassengerId')
-X = data[['Pclass', 'Fare', 'Age', 'Sex', 'Survived']]
-X = X.dropna(axis=0)
-Y = X['Survived']
-X = X.drop(['Survived'], axis=1)
-Sex=X['Sex']
-X = X.drop(['Sex'], axis=1)
-#OHE = OneHotEncoder()
-LHE = LabelEncoder()
-Sex = LHE.fit_transform(Sex)
-X['Sex'] = Sex
-#Sex = Sex.reshape(len(Sex), 1)
-#Encoded = OHE.fit_transform(Sex)
-clf = DecisionTreeClassifier(random_state=241)
-clf.fit(X, Y)
-importances =clf.feature_importances_
-print(importances)
-print(X)
+Z = sklearn.datasets.load_boston()
+X = Z['data']
+Y = Z['target']
+X = sklearn.preprocessing.scale(X)
+CV = sklearn.model_selection.KFold(n_splits=5, shuffle=True, random_state=42)
+A = np.empty(200)
+B = np.empty(200)
+p_metric = np.linspace(1, 20, 200)
+for i in range(len(p_metric)):
+    clf = KNeighborsRegressor(n_neighbors=5, weights='distance', p=p_metric[i])
+    quality = sklearn.model_selection.cross_val_score(clf, X, Y, scoring='neg_mean_squared_error')
+    q_mean = np.mean(quality)
+    A[i] = q_mean
+    B[i] = i
+Max = A.max()
+Index_max = np.argmax(A)
+print(Max, p_metric[Index_max])
